@@ -7,6 +7,22 @@ import { TRPCError } from "@trpc/server";
 const filterUserForClient = (user: User) => {
     return { id: user.id, username: user.username, profilePicture: user.imageUrl }
 }
+import { Ratelimit } from "@upstash/ratelimit"; // for deno: see above
+import { Redis } from "@upstash/redis";
+
+// Create a new ratelimiter, that allows 10 requests per 10 seconds
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(2, "1 m"),
+  analytics: true,
+  /**
+   * Optional prefix for the keys used in redis. This is useful if you want to share a redis
+   * instance with other applications and want to avoid key collisions. The default prefix is
+   * "@upstash/ratelimit"
+   */ 
+  prefix: "@upstash/ratelimit",
+});
+
 export const postsRouter = createTRPCRouter({
     //publicProcedure is a query which anyone should have access to. In this case all users should be able to get all of the posts
     getAll: publicProcedure.query(async ({ ctx }) => {
@@ -36,7 +52,10 @@ export const postsRouter = createTRPCRouter({
         )
         .mutation(async ({ ctx, input }) => {
             const authorId = ctx.userId;
+            const { success } = await ratelimit.limit(authorId);
 
+            if(!success) throw new TRPCError({code:"TOO_MANY_REQUESTS"});
+            
             const post = await ctx.prisma.post.create({
                 data: {
                     authorId,

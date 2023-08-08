@@ -9,12 +9,12 @@ import { SignInButton, useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import type { NextPage } from "next";
 import { LoadingPage } from "~/components/loading";
-const CreatePostWizard = () => {
 
+const CreatePostWizard = () => {
   const { user } = useUser();
   const [input, setInput] = React.useState("");
   const ctx= api.useContext();
-  const { mutate } = api.posts.create.useMutation({
+  const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
     onSuccess: () => {
       setInput("");
       void ctx.posts.getAll.invalidate();
@@ -33,7 +33,8 @@ const CreatePostWizard = () => {
       placeholder="Grace the world with your opinions!"
       className="bg-transparent w-full"
       value={input}
-      onChange={(e) => setInput(e.target.value)} />
+      onChange={(e) => setInput(e.target.value)}
+      disabled={isPosting} />
     <button onClick={() => mutate({ content: input })}>Post</button>
   </div>
 }
