@@ -7,18 +7,30 @@ import { api } from "~/utils/api";
 import type { RouterOutputs } from "~/utils/api";
 import { SignInButton, useUser } from "@clerk/nextjs";
 import Image from "next/image";
+import toast from "react-hot-toast";
+
 import type { NextPage } from "next";
-import { LoadingPage } from "~/components/loading";
+import { LoadingPage, LoadingSpinner } from "~/components/loading";
 
 const CreatePostWizard = () => {
   const { user } = useUser();
   const [input, setInput] = React.useState("");
-  const ctx= api.useContext();
+  const ctx = api.useContext();
   const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
     onSuccess: () => {
       setInput("");
       void ctx.posts.getAll.invalidate();
     },
+
+    onError: (e) => {
+      const errorMessage = e.data?.zodError?.fieldErrors.content;
+      if (errorMessage?.[0]) {
+        toast.error(errorMessage[0]);
+      }
+      else {
+        toast.error("Error! Failed to post!")
+      }
+    }
   });
 
 
@@ -34,9 +46,25 @@ const CreatePostWizard = () => {
       className="bg-transparent w-full"
       value={input}
       onChange={(e) => setInput(e.target.value)}
+      onKeyDown={(e)=>{
+        if (e.key ==="Enter"){
+          e.preventDefault();
+          if(input!==""){
+            mutate({ content: input});
+          }
+        }
+      }}
       disabled={isPosting} />
-    <button onClick={() => mutate({ content: input })}>Post</button>
-  </div>
+    {input !== "" && !isPosting && (<button
+      onClick={() => mutate({ content: input })}
+      disabled={isPosting}>
+      Post
+    </button>)}
+    {isPosting &&
+      (<div className="flex justify-center items-center">
+        <LoadingSpinner />
+      </div>)}
+  </div >
 }
 
 type PostWithUser = RouterOutputs["posts"]["getAll"][number];
@@ -85,6 +113,7 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex justify-center h-screen">
+
         <div className="h-full w-full md:max-w-2xl border-x border-slate-100">
           <div className="flex border-b border-slate-400 p-4">
             {!isSignedIn && <div className="flex justify-center">
