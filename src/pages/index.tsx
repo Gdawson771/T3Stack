@@ -1,5 +1,6 @@
 import Head from "next/head";
 import dayjs from "dayjs";
+import React from "react";
 import relativeTime from "dayjs/plugin/relativeTime";
 dayjs.extend(relativeTime);
 import { api } from "~/utils/api";
@@ -11,8 +12,16 @@ import { LoadingPage } from "~/components/loading";
 const CreatePostWizard = () => {
 
   const { user } = useUser();
+  const [input, setInput] = React.useState("");
+  const ctx= api.useContext();
+  const { mutate } = api.posts.create.useMutation({
+    onSuccess: () => {
+      setInput("");
+      void ctx.posts.getAll.invalidate();
+    },
+  });
 
-  console.log(user);
+
   if (!user) return null;
   return <div className="flex gap-3 md:max-w-l w-full">
     <Image
@@ -22,7 +31,10 @@ const CreatePostWizard = () => {
       className="rounded-full h-14 w-14" />
     <input
       placeholder="Grace the world with your opinions!"
-      className="bg-transparent w-full" />
+      className="bg-transparent w-full"
+      value={input}
+      onChange={(e) => setInput(e.target.value)} />
+    <button onClick={() => mutate({ content: input })}>Post</button>
   </div>
 }
 
@@ -56,13 +68,13 @@ const Feed = () => {
 }
 
 const Home: NextPage = () => {
-  const {isLoaded: userLoaded, isSignedIn } = useUser();
+  const { isLoaded: userLoaded, isSignedIn } = useUser();
 
   //start fetching ASAP
   api.posts.getAll.useQuery();
 
   //return empty div if user isn't loaded  yet
-  if (!userLoaded) return <div />;  
+  if (!userLoaded) return <div />;
 
   return (
     <>
@@ -79,7 +91,7 @@ const Home: NextPage = () => {
             </div>}
             {!!isSignedIn && <CreatePostWizard />}
           </div>
-          <Feed />  
+          <Feed />
         </div>
       </main>
     </>
