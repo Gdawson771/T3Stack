@@ -7,6 +7,7 @@ import { api } from "~/utils/api";
 import type { RouterOutputs } from "~/utils/api";
 import { SignInButton, useUser } from "@clerk/nextjs";
 import Image from "next/image";
+import { PageLayout } from "~/components/layout";
 import toast from "react-hot-toast";
 
 import type { NextPage } from "next";
@@ -79,7 +80,7 @@ const PostView = (props: PostWithUser) => {
         width={56}
         height={56} />
       <div className="flex flex-col">
-        <div className="flex text-slate-300 gap-1"><span>{`@${author.username}`}</span>
+        <div className="flex text-slate-300 gap-1">
           <Link href={`/@${author.username}`}>
             <span>
               {`@${author.username}`}
@@ -120,18 +121,17 @@ const Home: NextPage = () => {
 
   return (
     <>
-     
-      <main className="flex justify-center h-screen">
-        <div className="h-full w-full md:max-w-2xl border-x border-slate-100">
-          <div className="flex border-b border-slate-400 p-4">
-            {!isSignedIn && <div className="flex justify-center">
+      <PageLayout>
+        <div className="flex border-b border-slate-400 p-4">
+          {!isSignedIn &&
+            (<div className="flex justify-center">
               <SignInButton />
-            </div>}
-            {!!isSignedIn && <CreatePostWizard />}
-          </div>
-          <Feed />
+            </div>
+            )}
+          {!!isSignedIn && <CreatePostWizard />}
         </div>
-      </main>
+        <Feed />
+      </PageLayout>
     </>
   );
 }
