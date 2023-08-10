@@ -8,8 +8,23 @@ import superjson from "superjson";
 import { PageLayout } from "~/components/layout";
 import type { GetStaticProps } from 'next';
 import Image from "next/image";
+import { LoadingPage } from "~/components/loading";
+import { PostView } from "~/components/postView";
 
+const ProfileFeed = (props: { userId: string }) => {
 
+  const { data, isLoading } = api.posts.getPostsByUserId.useQuery({
+    userId: props.userId
+  });
+
+  if (isLoading) return <LoadingPage />;
+
+  if (!data || data.length === 0) return <div>User has not posted</div>
+
+  return <div className="flex flex-col">
+    {data.map((fullPost) => (<PostView {...fullPost} key={fullPost.post.id} author={fullPost.author} />))}
+    </div>
+}
 const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
 
   const { data, isLoading } = api.profiles.getUserByUsername.useQuery({ username });
@@ -31,10 +46,11 @@ const ProfilePage: NextPage<{ username: string }> = ({ username }) => {
             width={128}
             height={128}
             className="absolute bottom-0 left-0 -mb-[64px] ml-4 rounded-full border-4 border-black" />
-         
+
         </div>
         <div className="h-[48px]"></div>
         <div className="p-4 text-2xl font-bold border-b border-slate-400">{`@${data.username}`}</div>
+        <ProfileFeed userId={data.id}/>
       </PageLayout>
     </>
   );
