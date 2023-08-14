@@ -31,7 +31,7 @@ export const PostView = (props: PostWithUser) => {
           </Link>
           {/* <div className="text-slate-400">{` · ${dayjs(post.createdAt).fromNow()}`}</div> */}
         </div>
-        <span>
+        <span className="break-words">
           {post.content}
         </span>
       </div>
