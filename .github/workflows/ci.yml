@@ -21,7 +21,7 @@ jobs:
       run: npm install
 
     - name: TypeScript type check
-      run: npx s --noEmit
+      run: npx tsc --noEmit
 
     - name: Run lint
       run: npm run lint # Assumes you have a lint script defined in your package.json
