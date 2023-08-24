@@ -12,9 +12,11 @@ import type { NextPage } from "next";
 import { LoadingPage, LoadingSpinner } from "~/components/loading";
 
 const CreatePostWizard = () => {
+  
   const { user } = useUser();
   const [input, setInput] = React.useState("");
   const ctx = api.useContext();
+  // api.ethAPI.getBalance();
   const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
     onSuccess: () => {
       setInput("");
@@ -32,8 +34,33 @@ const CreatePostWizard = () => {
     }
   });
 
-
   if (!user) return null;
+  const validateWealth = () => {
+    if (!user.username && user.primaryWeb3WalletId && user.web3Wallets) {
+      const primaryWallet = user.web3Wallets.find((wallet) => wallet.id === user.primaryWeb3WalletId);
+      console.log("primary wallet", primaryWallet)
+      if (primaryWallet) {
+        const userWEI =  api.ethAPI.getBalance.useQuery({ address: primaryWallet.web3Wallet });
+        console.log("userWEI!",userWEI)
+        if(userWEI.data?.result && parseFloat(userWEI.data?.result)/1000000000000000000 >=0)
+        {
+          console.log("wealthy!")
+          return true;
+        }
+      }
+    }
+    console.log("Too poor!")
+    return false;
+  }
+
+
+  // if (!user.username && user.primaryWeb3WalletId && user.web3Wallets) {
+  //   const primaryWallet = user.web3Wallets.filter((wallet) => wallet.id === user.primaryWeb3WalletId)[0];
+  //   if (primaryWallet) {
+  //     const a = api.ethAPI.getBalance.useQuery({ address: primaryWallet.web3Wallet })
+  //   }
+  // }
+
   return <div className="flex gap-3 md:max-w-l w-full">
     <Image
       src={user.imageUrl}
@@ -53,7 +80,7 @@ const CreatePostWizard = () => {
           }
         }
       }}
-      disabled={isPosting} />
+      disabled={isPosting || !validateWealth()} />
     {input !== "" && !isPosting && (<button
       onClick={() => mutate({ content: input })}
       disabled={isPosting}>
@@ -66,35 +93,7 @@ const CreatePostWizard = () => {
   </div >
 }
 
-// type PostWithUser = RouterOutputs["posts"]["getAll"][number];
-// const PostView = (props: PostWithUser) => {
-//   const { post, author } = props;
-//   return (
-//     <div key={post.id} className="p-4 border-b border-slate-400 flex items-center gap-2 ">
-//       <Image
-//         src={author.profilePicture}
-//         className="rounded-full h-14 w-14"
-//         alt={`@${author.username}'s profile picture`}
-//         width={56}
-//         height={56} />
-//       <div className="flex flex-col">
-//         <div className="flex text-slate-300 gap-1">
-//           <Link href={`/@${author.username}`}>
-//             <span>
-//               {`@${author.username}`}
-//             </span>
-//           </Link>
-//           <Link href={`/post/${post.id}`}>
-//             <span className="text-slate-400">{` · ${dayjs(post.createdAt).fromNow()}`} </span>
-//           </Link>
-//           {/* <div className="text-slate-400">{` · ${dayjs(post.createdAt).fromNow()}`}</div> */}
-//         </div>
-//         <span>
-//           {post.content}
-//         </span>
-//       </div>
-//     </div>)
-// }
+
 
 const Feed = () => {
   const { data, isLoading: postLoading } = api.posts.getAll.useQuery();
@@ -111,6 +110,7 @@ const Feed = () => {
 const Home: NextPage = () => {
   const { isLoaded: userLoaded, isSignedIn } = useUser();
 
+  //const {isWealthy, setIsWealthy} = api.
   //start fetching ASAP
   api.posts.getAll.useQuery();
 
