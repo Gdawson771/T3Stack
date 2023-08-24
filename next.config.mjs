@@ -32,7 +32,7 @@ const config = {
     ignoreDuringBuilds: true
   },
   
-  swxMinify: true,
+  swcMinify: true,
 
 };
 

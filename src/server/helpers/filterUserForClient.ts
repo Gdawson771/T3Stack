@@ -1,6 +1,6 @@
 import type { User } from "@clerk/nextjs/dist/types/server";
 export const filterUserForClient = (user: User) => {
-    if (!user.username && user.primaryWeb3WalletId && user.web3Wallets) {
+    if (user?.primaryWeb3WalletId && user.web3Wallets) {
         const primaryWallet = user.web3Wallets.filter((wallet) => wallet.id === user.primaryWeb3WalletId)[0];
         if (primaryWallet) {
             return {
@@ -8,7 +8,6 @@ export const filterUserForClient = (user: User) => {
                 username: primaryWallet.web3Wallet,
                 profilePicture: user.imageUrl,
                 web3:primaryWallet,
-                
             }
         }
         else return {
