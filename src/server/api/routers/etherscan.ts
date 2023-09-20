@@ -1,12 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, privateProcedure, publicProcedure } from "~/server/api/trpc";
-import { clerkClient } from "@clerk/nextjs";
-import { TRPCError } from "@trpc/server";
-import { filterUserForClient } from "~/server/helpers/filterUserForClient"
-import { Ratelimit } from "@upstash/ratelimit"; // for deno: see above
-import { Redis } from "@upstash/redis";
-import type { Post } from "@prisma/client";
-import { json } from "stream/consumers";
+import { createTRPCRouter, privateProcedure } from "~/server/api/trpc";
 type ResponseData = {
     status: string;
     message: string;
@@ -14,17 +7,17 @@ type ResponseData = {
   };
 
 // Create a new ratelimiter, that allows 10 requests per 10 seconds
-const ratelimit = new Ratelimit({
-    redis: Redis.fromEnv(),
-    limiter: Ratelimit.slidingWindow(2, "1 m"),
-    analytics: true,
-    /**
-     * Optional prefix for the keys used in redis. This is useful if you want to share a redis
-     * instance with other applications and want to avoid key collisions. The default prefix is
-     * "@upstash/ratelimit"
-     */
-    prefix: "@upstash/ratelimit",
-});
+// const ratelimit = new Ratelimit({
+//     redis: Redis.fromEnv(),
+//     limiter: Ratelimit.slidingWindow(2, "1 m"),
+//     analytics: true,
+//     /**
+//      * Optional prefix for the keys used in redis. This is useful if you want to share a redis
+//      * instance with other applications and want to avoid key collisions. The default prefix is
+//      * "@upstash/ratelimit"
+//      */
+//     prefix: "@upstash/ratelimit",
+// });
 
 export const etherscanRouter = createTRPCRouter({
     //publicProcedure is a query which anyone should have access to. In this case all users should be able to get all of the posts
@@ -40,13 +33,16 @@ export const etherscanRouter = createTRPCRouter({
                 
                 // }
                 // const response = await fetch(url);
-                
-            const response = (await fetch('https://api.etherscan.io/api?module=account&action=balancemulti' 
-            + '&address=0x' + input.address +
-            + '&tag=latest&apikey='+process.env.ETHERSCAN_API_TOKEN));
+              //  https://api.etherscan.io/api?module=account&action=balancemulti&address=0x59D68B3646E31A7a681EfA0c73C02ECC8FAFF8eA&tag=latest&apikey=T94VC1D1W7F96AFGVNY9KTU6VN4MJXMJGD
+            if(!process.env.ETHERSCAN_API_TOKEN){     throw new Error(`Request failed with API key Error`);}
+            console.log("getting response!")
+            //const response = (await fetch('https://api.etherscan.io/api?module=account&action=balancemulti&address=0x59D68B3646E31A7a681EfA0c73C02ECC8FAFF8eA&tag=latest&apikey='.concat(process.env.ETHERSCAN_API_TOKEN)));
+            const response = (await fetch('https://api.etherscan.io/api?module=account&action=balance&address='
+            .concat(input.address).concat('&tag=latest&apikey=').concat(process.env.ETHERSCAN_API_TOKEN)));
             if (!response.ok) {
               throw new Error(`Request failed with status: ${response.status}`);
             }
+            console.log("response got")
         
             const data = await response.json() as ResponseData
             return data

@@ -7,21 +7,21 @@ export const filterUserForClient = (user: User) => {
                 id: user.id,
                 username: primaryWallet.web3Wallet,
                 profilePicture: user.imageUrl,
-                web3:primaryWallet,
+                // web3:primaryWallet.,
             }
         }
         else return {
             id: user.id,
             username: "Unknown",
             profilePicture: user.imageUrl,
-            web3:false,
+            // web3:false,
         }
     }
     return {
         id: user.id,
         username: user.username,
         profilePicture: user.imageUrl,
-        web3:false,
+        // web3:false,
     }
 }
 

@@ -17,6 +17,7 @@ model Post {
     
     content String @db.VarChar(255)
     authorId String
+    wealth  BigInt
 
     @@index([authorId])
 }

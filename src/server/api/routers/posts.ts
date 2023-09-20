@@ -27,8 +27,8 @@ const addUserDataToPosts = async (posts:Post[]) =>{
 
     return posts.map((post) => {
         const author = users.find((user) => user.id === post.authorId)!
-        console.log("POST", post);
-        console.log("AUTHOR", author);
+       // console.log("POST", post);
+      //  console.log("AUTHOR", author);
         if (!author?.username  ) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Author for post not found" });
         return {
             post,
@@ -42,14 +42,15 @@ export const postsRouter = createTRPCRouter({
     getAll: publicProcedure.query(async ({ ctx }) => {
         const posts = await ctx.prisma.post.findMany({
             take: 100,
-            orderBy: [{ createdAt: "desc", }]
+            orderBy: [{ wealth:"desc"},{createdAt:"desc"}]
         });
         return addUserDataToPosts(posts);
     }),
     create: privateProcedure
         .input(
             z.object({
-                content: z.string().min(1).max(280)
+                content: z.string().min(1).max(280),
+                wealth: z.number()
             })
         )
         .mutation(async ({ ctx, input }) => {
@@ -62,6 +63,7 @@ export const postsRouter = createTRPCRouter({
                 data: {
                     authorId,
                     content: input.content,
+                    wealth: input.wealth
                 }
             });
             return post;
